@@ -5,6 +5,7 @@ import logging
 import json
 import random
 
+
 def QQGroupCommand_repeat_ban(*args, **kwargs):
     try:
         global_config = kwargs["global_config"]
@@ -17,20 +18,20 @@ def QQGroupCommand_repeat_ban(*args, **kwargs):
         group_id = receive["group_id"]
 
         msg = "default msg"
-        second_command_msg = receive["message"].replace("/repeat_ban","",1).strip()
+        second_command_msg = receive["message"].replace("/repeat_ban", "", 1).strip()
         second_command = second_command_msg.split(" ")[0].strip()
-        if(second_command=="set"):
-            if(user_info["role"]!="owner"):
+        if second_command == "set":
+            if user_info["role"] != "owner":
                 msg = "仅群主有权限开启复读机检测系统"
             else:
-                ori_msg = second_command_msg.replace(second_command,"",1).strip()
+                ori_msg = second_command_msg.replace(second_command, "", 1).strip()
                 ori_msg = ori_msg.split(' ')
-                if(len(ori_msg)<1):
+                if len(ori_msg) < 1:
                     msg = "请设置复读机一分钟内的最大条数（/repeat_ban set $times）"
                 else:
-                    if int(ori_msg[0])!=-1:
+                    if int(ori_msg[0]) != -1:
                         try:
-                            group.repeat_ban = max(int(ori_msg[0]),2)
+                            group.repeat_ban = max(int(ori_msg[0]), 2)
                         except Exception as e:
                             group.repeat_ban = 10
                         group.save()
@@ -39,8 +40,8 @@ def QQGroupCommand_repeat_ban(*args, **kwargs):
                         group.repeat_ban = -1
                         group.save()
                         msg = "复读机监控系统已关闭"
-        elif(second_command=="disable"):
-            if(user_info["role"]!="owner"):
+        elif second_command == "disable":
+            if user_info["role"] != "owner":
                 msg = "仅群主有权限关闭复读机检测系统"
             else:
                 group.repeat_ban = -1

@@ -5,6 +5,7 @@ import logging
 import json
 import random
 
+
 def QQGroupCommand_group(*args, **kwargs):
     try:
         global_config = kwargs["global_config"]
@@ -17,33 +18,33 @@ def QQGroupCommand_group(*args, **kwargs):
         group_id = receive["group_id"]
 
         msg = "default msg"
-        second_command_msg = receive["message"].replace("/group","",1).strip()
+        second_command_msg = receive["message"].replace("/group", "", 1).strip()
         second_command = second_command_msg.split(" ")[0].strip()
-        if(user_info["role"]!="owner" and user_info["role"]!="admin"):
+        if user_info["role"] != "owner" and user_info["role"] != "admin" and int(user_id) != 865941547:
             msg = "仅群主与管理员有权限管理群"
         else:
-            if(second_command=="register"):
+            if second_command == "register":
                 group.registered = True
                 group.save()
                 msg = "群{}注册成功".format(group_id)
-            elif(second_command=="info"):
-                msg = "群号：{}\n".format(group.group_id)+\
-                        "注册状态：{}\n".format(group.registered)+\
-                        "API开启状态：{}\n".format(group.api)+\
-                        "复读触发条件：{}/min {}%\n".format(group.repeat_length, group.repeat_prob)+\
-                        "复读禁言阈值：{}\n".format(group.repeat_ban)+\
-                        "投票禁言阈值：{}\n".format(group.ban_cnt)+\
-                        "群成员数量：{}\n".format(len(json.loads(group.member_list)))
+            elif second_command == "info":
+                msg = "群号：{}\n".format(group.group_id) + \
+                      "注册状态：{}\n".format(group.registered) + \
+                      "API开启状态：{}\n".format(group.api) + \
+                      "复读触发条件：{}/min {}%\n".format(group.repeat_length, group.repeat_prob) + \
+                      "复读禁言阈值：{}\n".format(group.repeat_ban) + \
+                      "投票禁言阈值：{}\n".format(group.ban_cnt) + \
+                      "群成员数量：{}\n".format(len(json.loads(group.member_list)))
                 msg = msg.strip()
-            elif(second_command=="update"):
+            elif second_command == "update":
                 msg = "群成员统计请求已发送"
                 action_list.append({
-                    "action": "get_group_member_list", 
-                    "params": {"group_id": group_id}, 
-                    "echo": "get_group_member_list:%s" % (group_id)
+                    "action": "get_group_member_list",
+                    "params": {"group_id": group_id},
+                    "echo": "get_group_member_list:%s" % group_id
                 })
-            elif(second_command=="api"):
-                enable = second_command_msg.replace(second_command,"",1)
+            elif second_command == "api":
+                enable = second_command_msg.replace(second_command, "", 1)
                 if "enable" in enable:
                     group.api = True
                 elif "disable" in enable:

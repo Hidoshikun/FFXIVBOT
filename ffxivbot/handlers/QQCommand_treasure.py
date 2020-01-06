@@ -18,21 +18,23 @@ from bs4 import BeautifulSoup
 def get_image_from_CQ(CQ_text):
     if "url=" in CQ_text:
         tmp = CQ_text
-        tmp = tmp[tmp.find("url=") : -1]
+        tmp = tmp[tmp.find("url="): -1]
         tmp = tmp.replace("url=", "")
         img_url = tmp.replace("]", "")
         return img_url
     return None
 
+
 def img_diff(target, template):
     try:
         theight, twidth = template.shape[:2]
-        result = cv2.matchTemplate(target,template,cv2.TM_CCOEFF_NORMED)
+        result = cv2.matchTemplate(target, template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
         return min_val
     except Exception as e:
         traceback.print_exc()
     return float("inf")
+
 
 def img_diff2(target, template):
     def dhash(image):
@@ -46,10 +48,13 @@ def img_diff2(target, template):
                     hash_list.append('1')
                 else:
                     hash_list.append('0')
-        return '' . join(hash_list)
+        return ''.join(hash_list)
+
     def hamming_distance(dhash1, dhash2):
-        return bin(int(dhash1, base = 2) ^ int(dhash2, base = 2)).count('1')
+        return bin(int(dhash1, base=2) ^ int(dhash2, base=2)).count('1')
+
     return hamming_distance(dhash(target), dhash(template))
+
 
 def read_uri(uri):
     encoded_data = uri.split(',')[1]
@@ -86,7 +91,8 @@ def QQCommand_treasure(*args, **kwargs):
                 msg = "未发现图片信息"
             else:
                 res = requests.get(url=img_url, timeout=5)
-                template_uri = "data:" + res.headers['Content-Type'] + ";" +"base64," + base64.b64encode(res.content).decode("utf-8")
+                template_uri = "data:" + res.headers['Content-Type'] + ";" + "base64," + base64.b64encode(
+                    res.content).decode("utf-8")
                 template = read_uri(template_uri)
                 min_diff = -1
                 min_treasuremap = None
@@ -112,8 +118,10 @@ def QQCommand_treasure(*args, **kwargs):
                 else:
                     territory = min_treasuremap.territory
                     pos_x, pos_y = json.loads(min_treasuremap.position)
-                    map_url = "https://map.wakingsands.com/#f=mark&x={}&y={}&id={}".format(pos_x, pos_y, territory.mapid)
-                    map_cq = "[CQ:image,file=base64://{}]\n".format(min_treasuremap.uri.replace("data:image/jpeg;base64,", ""))
+                    map_url = "https://map.wakingsands.com/#f=mark&x={}&y={}&id={}".format(pos_x, pos_y,
+                                                                                           territory.mapid)
+                    map_cq = "[CQ:image,file=base64://{}]\n".format(
+                        min_treasuremap.uri.replace("data:image/jpeg;base64,", ""))
                     msg = "地图：{} 编号：{} 坐标：({}, {})\n{}".format(territory, min_treasuremap.number, pos_x, pos_y, map_url)
                     msg = "[CQ:at,qq={}] ".format(receive["user_id"]) + msg
         msg = msg.strip()

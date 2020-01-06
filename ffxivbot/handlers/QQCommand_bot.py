@@ -1,7 +1,6 @@
 from .QQEventHandler import QQEventHandler
 from .QQUtils import *
 from ffxivbot.models import *
-import traceback
 import logging
 import json
 import random
@@ -12,10 +11,10 @@ import os
 
 
 def QQCommand_bot(*args, **kwargs):
-    action_list = []
     try:
         global_config = kwargs["global_config"]
         WEB_BASE_URL = global_config["WEB_BASE_URL"]
+        action_list = []
         receive = kwargs["receive"]
         bot = kwargs["bot"]
         user_id = receive["user_id"]
@@ -63,20 +62,18 @@ def QQCommand_bot(*args, **kwargs):
                 bot.r18 = not bot.r18
                 bot.save(update_fields=["r18"])
                 msg = "HSO已{}".format("启用" if bot.r18 else "禁用")
-        elif(second_command == "info"):
+        elif second_command == "info":
             if int(user_id) != int(bot.owner_id):
                 msg = "仅机器人领养者能查询机器人状态"
             else:
                 friend_list = json.loads(bot.friend_list)
-                if not friend_list:
-                    friend_list = {"friends": []}
-                msg = "姓名：{}\n".format(bot.name)+\
-                        "账号：{}\n".format(bot.user_id)+\
-                        "领养者：[CQ:at,qq={}]\n".format(bot.owner_id)+\
-                        "群数量：{}\n".format(len(json.loads(bot.group_list)))+\
-                        "好友数量：{}\n".format(len(friend_list.get("friends", [])))+\
-                        "文本兼容：{}\n".format(bot.share_banned)+\
-                        "HSO: {}\n".format(bot.r18)
+                msg = "姓名：{}\n".format(bot.name) + \
+                      "账号：{}\n".format(bot.user_id) + \
+                      "领养者：[CQ:at,qq={}]\n".format(bot.owner_id) + \
+                      "群数量：{}\n".format(len(json.loads(bot.group_list))) + \
+                      "好友数量：{}\n".format(len(friend_list.get("friends", []))) + \
+                      "文本兼容：{}\n".format(bot.share_banned) + \
+                      "HSO: {}\n".format(bot.r18)
             msg = msg.strip()
         elif receive_msg == "update":
             if int(user_id) != int(bot.owner_id):
@@ -102,12 +99,12 @@ def QQCommand_bot(*args, **kwargs):
                 msg = "机器人状态统计请求已发送"
         elif receive_msg == "":
             msg = (
-                "/bot token $token: 申请接收ACT插件消息时认证的token\n"+\
-                "/bot update: 更新机器人统计信息\n"+\
-                "/bot info: 查看机器人信息\n"+\
-                "/bot register: 申请网站注册认证码\n"+\
-                "/bot text: 更改连接分享模式\n"+\
-                "/bot hso: HSO开关\n"
+                    "/bot token $token: 申请接收ACT插件消息时认证的token\n" +
+                    "/bot update: 更新机器人统计信息\n" +
+                    "/bot info: 查看机器人信息\n" +
+                    "/bot register: 申请网站注册认证码\n" +
+                    "/bot text: 更改连接分享模式\n" +
+                    "/bot hso: HSO开关\n "
             )
             msg = msg.strip()
         else:
@@ -119,8 +116,6 @@ def QQCommand_bot(*args, **kwargs):
             action_list.append(reply_action)
         return action_list
     except Exception as e:
-        traceback.print_exc()
         msg = "Error: {}".format(type(e))
         action_list.append(reply_message_action(receive, msg))
         logging.error(e)
-    return action_list

@@ -15,8 +15,7 @@ def QQCommand_gakki(*args, **kwargs):
             {
                 "type": "image",
                 "data": {
-                    "file": QQ_BASE_URL
-                    + "static/gakki/%s.jpg" % (random.randint(1, 1270))
+                    "file": QQ_BASE_URL + "static/gakki/%s.jpg" % (random.randint(1, 1270))
                 },
             }
         ]

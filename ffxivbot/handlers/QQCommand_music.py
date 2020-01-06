@@ -57,7 +57,7 @@ def QQCommand_music(*args, **kwargs):
             msg = "default msg"
             if message_content.find("help") == 0 or message_content == "":
                 msg = (
-                    "/music $name : 搜索关键词$name的歌曲\n" + "Powered by https://api.imjad.cn"
+                        "/music $name : 搜索关键词$name的歌曲\n" + "Powered by https://api.imjad.cn"
                 )
             else:
                 word = message_content

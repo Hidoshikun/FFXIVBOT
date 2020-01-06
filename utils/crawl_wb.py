@@ -2,11 +2,12 @@
 import sys
 import os
 import django
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'FFXIV.settings'
 from FFXIV import settings
+
 django.setup()
-from ffxivbot.handlers.QQUtils import *
 from asgiref.sync import async_to_sync
 from ffxivbot.models import *
 import re
@@ -19,23 +20,13 @@ import codecs
 import urllib
 import base64
 import logging
-from logging.handlers import TimedRotatingFileHandler
 import traceback
 from bs4 import BeautifulSoup
 from channels.layers import get_channel_layer
 from django.db import connection, connections
 
-logging.basicConfig(
-                level = logging.INFO,
-                format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                handlers = {
-                        TimedRotatingFileHandler(
-                                        "log/crawl_wb.log",
-                                        when="D",
-                                        backupCount = 10
-                                    )
-                        }
-            )
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    filename="log/crawl_wb.log")
 
 
 def progress(percent, width=50):
@@ -45,69 +36,72 @@ def progress(percent, width=50):
     print('\r%s %d%%' % (show_str, percent), end='')
 
 
-def crawl_wb(weibouser, push=False):
-    uid = weibouser.uid
-    containerid = weibouser.containerid
+def get_weibotile_share1(weibotile, mode="json"):
+    content_json = json.loads(weibotile.content)
+    mblog = content_json["mblog"]
+    bs = BeautifulSoup(mblog["text"], "html.parser")
+    tmp = {
+        "url": content_json["scheme"],
+        "title": bs.get_text().replace("\u200b", "")[:32],
+        "content": "From {}\'s Weibo".format(weibotile.owner),
+        "image": mblog["user"]["profile_image_url"],
+    }
+    res_data = tmp
+    if mode == "text":
+        res_data = "[[CQ:share,url={},title={},content={},image={}]]".format(tmp["url"], tmp["title"], tmp["content"],
+                                                                             tmp["image"])
+    logging.debug("weibo_share")
+    logging.debug(json.dumps(res_data))
+    return res_data
+
+
+def crawl_wb(weibo_user, push=True):
+    uid = weibo_user.uid
+    containerid = weibo_user.containerid
     url = r'https://m.weibo.cn/api/container/getIndex?type=uid&value={}&containerid={}'.format(uid, containerid)
-    s = requests.post(url=url, timeout = 15)
+    s = requests.post(url=url, timeout=15)
     jdata = json.loads(s.text)
-    if(jdata["ok"] == 1):
+    if jdata["ok"] == 1:
         for tile in jdata["data"]["cards"]:
-            if(len(WeiboTile.objects.filter(itemid=tile.get("itemid", ""))) > 0):
+            if len(WeiboTile.objects.filter(itemid=tile.get("itemid", ""))) > 0:
                 # print("crawled {} of {} before, pass".format(tile["itemid"], tile["itemid"]))
                 continue
             t = WeiboTile(itemid=tile.get("itemid", ""))
-            t.owner = weibouser
+            t.owner = weibo_user
             t.content = json.dumps(tile)
             t.crawled_time = int(time.time())
-            if(tile.get("itemid", "") == ""):
+            if tile.get("itemid", "") == "":
                 logging.info("pass a tile of {} cuz empty itemid".format(t.owner))
-                # logging.info(json.dumps(tile))
                 continue
             channel_layer = get_channel_layer()
 
-            groups = weibouser.subscribed_by.all()
-            # print("ready to push groups:{}".format(list(groups)))
+            groups = weibo_user.subscribed_by.all()
             bots = QQBot.objects.all()
             t.save()
             for group in groups:
                 for bot in bots:
                     group_id_list = [item["group_id"] for item in json.loads(bot.group_list)]
-                    if int(group.group_id) not in group_id_list: continue
+                    if int(group.group_id) not in group_id_list:
+                        continue
                     try:
-                        msg = get_weibotile_share(t, mode="text")
-                        if bot.share_banned:
+                        if True:
                             content_json = json.loads(t.content)
                             mblog = content_json["mblog"]
-                            bs = BeautifulSoup(mblog["text"],"html.parser")
+                            bs = BeautifulSoup(mblog["text"], "html.parser")
                             if "original_pic" in mblog.keys():
-                                text = "{}\n{}\n{}".format(
-                                                "{}\'s Weibo:\n========".format(t.owner),
-                                                bs.get_text().replace("\u200b", "").strip(),
-                                                content_json["scheme"]
-                                            )
+                                text = "{}\n{}".format(
+                                    "{}\'s Weibo:\n========".format(t.owner),
+                                    bs.get_text().replace("\u200b", "").strip()
+                                )
                                 msg = [
-                                    {
-                                        "type": "text",
-                                        "data": {
-                                            "text": text
-                                        },
-                                    },
-                                    {
-                                        "type": "image",
-                                        "data": {
-                                            "file": mblog["original_pic"]
-                                        },
-                                    }
+                                    {"type": "text", "data": {"text": text}, },
+                                    {"type": "image", "data": {"file": mblog["original_pic"]}, }
                                 ]
                             else:
-                                msg = "{}\n{}\n{}".format(
+                                msg = "{}\n{}".format(
                                     "{}\'s Weibo:\n========".format(t.owner),
-                                    bs.get_text().replace("\u200b", "").strip(),
-                                    content_json["scheme"]
+                                    bs.get_text().replace("\u200b", "").strip()
                                 )
-                        logging.info("Pushing {} to group: {}".format(t, group))
-                        # print("msg: {}".format(msg))
                         if push:
                             t.pushed_group.add(group)
                             jdata = {
@@ -115,14 +109,9 @@ def crawl_wb(weibouser, push=False):
                                 "params": {"group_id": int(group.group_id), "message": msg},
                                 "echo": "",
                             }
-                            if not bot.api_post_url:
-                                async_to_sync(channel_layer.send)(bot.api_channel_name, {"type": "send.event", "text": json.dumps(jdata), })
-                            else:
-                                url = os.path.join(bot.api_post_url, "{}?access_token={}".format(jdata["action"], bot.access_token))
-                                headers = {'Content-Type': 'application/json'} 
-                                r = requests.post(url=url, headers=headers, data=json.dumps(jdata["params"]), timeout=5)
-                                if r.status_code!=200:
-                                    logging.error(r.text)
+                            async_to_sync(channel_layer.send)(bot.api_channel_name,
+                                                              {"type": "send.event", "text": json.dumps(jdata), })
+
                     except requests.ConnectionError as e:
                         logging.error("Pushing {} to group: {} ConnectionError".format(t, group))
                     except requests.ReadTimeout as e:
@@ -138,18 +127,18 @@ def crawl_wb(weibouser, push=False):
 
 
 def crawl():
-    wbus = WeiboUser.objects.all()
-    for wbu in wbus:
-        logging.info("Begin crawling {}".format(wbu.name))
+    weibo_users = WeiboUser.objects.all()
+    for user in weibo_users:
+        logging.info("Begin crawling {}".format(user.name))
         try:
-            crawl_wb(wbu, True)
+            crawl_wb(user, True)
         except requests.ReadTimeout as e:
-            logging.error("crawling {} timeout".format(wbu.name))
+            logging.error("crawling {} timeout".format(user.name))
         except Exception as e:
             traceback.print_exc()
             logging.error(e)
         time.sleep(1)
-        logging.info("Crawl {} finish".format(wbu.name))
+        logging.info("Crawl {} finish".format(user.name))
 
 
 if __name__ == "__main__":

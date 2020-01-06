@@ -1,10 +1,13 @@
 from django.contrib import admin
 from .models import *
+
+
 # Register your models here.
 
 
 class QQGroupAdmin(admin.ModelAdmin):
-    list_display = ('group_id', 'welcome_msg', 'last_reply_time')
+    list_display = (
+        'group_id', 'welcome_msg', 'last_reply_time', 'repeat_length', 'repeat_prob', 'registered')
     search_fields = ['group_id']
 
 
@@ -38,12 +41,12 @@ class QuestAdmin(admin.ModelAdmin):
 
 
 class BossAdmin(admin.ModelAdmin):
-    list_display = ('boss_id', 'name', 'cn_name')
+    list_display = ('boss_id', 'name', 'cn_name', 'nickname', 'add_time', 'cn_add_time', 'patch')
     search_fields = ['name', 'cn_name']
 
 
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cn_name')
+    list_display = ('name', 'cn_name', 'nickname')
     search_fields = ['name', 'cn_name']
 
 
@@ -104,54 +107,53 @@ class WeatherRateAdmin(admin.ModelAdmin):
 
 
 class TerritoryAdmin(admin.ModelAdmin):
-    list_display = ["id", "name"]
+    list_display = ["name"]
     search_fields = ['name']
 
 
 class ImageAdmin(admin.ModelAdmin):
     list_display = ["name", "key"]
     search_fields = ['name', 'key']
-    raw_id_fields  = ["add_by"]
 
 
 class LotteryAdmin(admin.ModelAdmin):
     list_display = ["id", "name", "group"]
     search_fields = ['name', 'group']
 
+
 class LiveUserAdmin(admin.ModelAdmin):
     list_display = ["name", "platform", "room_id"]
     search_fields = ["name", "platform", "room_id"]
 
+
 class HuntGroupAdmin(admin.ModelAdmin):
     list_display = ["group", "server"]
     search_fields = ["group", "server"]
-    raw_id_fields  = ["group", "moderator"]
+    raw_id_fields = ["group", "moderator"]
+
 
 class MonsterAdmin(admin.ModelAdmin):
     list_display = ["name", "cn_name", "territory", "rank"]
     search_fields = ["name ", "cn_name"]
     list_filter = ["territory", "rank"]
 
+
 class HuntLogAdmin(admin.ModelAdmin):
     list_display = ["monster", "hunt_group", "server", "log_type", "time"]
     search_fields = ["monster ", "hunt_group", "log_type"]
     list_filter = ["monster", "hunt_group", "server", "log_type"]
-    raw_id_fields  = ["hunt_group"]
+    raw_id_fields = ["hunt_group"]
+
 
 class IFTTTChannelAdmin(admin.ModelAdmin):
     list_display = ["name", "group"]
     search_fields = ["name ", "group"]
-    raw_id_fields  = ["members"]
+    raw_id_fields = ["members"]
+
 
 class TreasureMapAdmin(admin.ModelAdmin):
-    list_display = ["territory", "number"]
+    list_display = ["territory", "position", 'rank', 'number']
     search_fields = ["territory"]
-    list_filter = ["territory", "rank"]
-
-class ScreenAdmin(admin.ModelAdmin):
-    list_display = ('name','nickname','classname')
-    search_fields = ['name','name']
-
 
 
 admin.site.register(QQGroup, QQGroupAdmin)
@@ -183,4 +185,3 @@ admin.site.register(Monster, MonsterAdmin)
 admin.site.register(HuntLog, HuntLogAdmin)
 admin.site.register(IFTTTChannel, IFTTTChannelAdmin)
 admin.site.register(TreasureMap, TreasureMapAdmin)
-admin.site.register(Screen, ScreenAdmin)

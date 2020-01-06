@@ -101,9 +101,9 @@ def QQCommand_dps(*args, **kwargs):
                             "day#{}".format(tmp_day), "", 1
                         )
                     atk_res = crawl_dps(
-                        boss=boss_obj, 
-                        job=job_obj, 
-                        day=day, 
+                        boss=boss_obj,
+                        job=job_obj,
+                        day=day,
                         CN_source=CN_source,
                         dps_type=dps_type
                     )
@@ -143,8 +143,8 @@ def QQCommand_dps(*args, **kwargs):
                                 atk_list = [atk_dict[str(i)] for i in percentage_list]
                                 idx = 0
                                 while (
-                                    idx < len(percentage_list)
-                                    and atk > atk_dict[str(percentage_list[idx])]
+                                        idx < len(percentage_list)
+                                        and atk > atk_dict[str(percentage_list[idx])]
                                 ):
                                     idx += 1
                                 if idx >= len(percentage_list):
@@ -156,7 +156,9 @@ def QQCommand_dps(*args, **kwargs):
                                     )
                                 else:
                                     # fmt: off
-                                    calc_perc = ((atk-atk_list[idx-1])/(atk_list[idx]-atk_list[idx-1]))*(percentage_list[idx]-percentage_list[idx-1])+percentage_list[idx-1]  # math here
+                                    calc_perc = ((atk - atk_list[idx - 1]) / (atk_list[idx] - atk_list[idx - 1])) * (
+                                                percentage_list[idx] - percentage_list[idx - 1]) + percentage_list[
+                                                    idx - 1]  # math here
                                     # fmt: on
                                     if calc_perc < 10:
                                         msg = "%s %s %.2f 10%%-" % (

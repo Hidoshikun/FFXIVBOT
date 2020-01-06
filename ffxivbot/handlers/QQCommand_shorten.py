@@ -19,14 +19,16 @@ from hashlib import sha1
 import hmac
 import urllib.parse
 
+
 def get_image_from_CQ(CQ_text):
     if "url=" in CQ_text:
         tmp = CQ_text
-        tmp = tmp[tmp.find("url=") : -1]
+        tmp = tmp[tmp.find("url="): -1]
         tmp = tmp.replace("url=", "")
         img_url = tmp.replace("]", "")
         return img_url
     return None
+
 
 def shorten(raw_url, **kwargs):
     WEIBO_TOKEN = kwargs.get("WEIBO_TOKEN")
@@ -46,6 +48,7 @@ def shorten(raw_url, **kwargs):
         return short_url
     return "Unkown Error"
 
+
 @transaction.atomic
 def QQCommand_shorten(*args, **kwargs):
     action_list = []
@@ -58,11 +61,11 @@ def QQCommand_shorten(*args, **kwargs):
         action_list = []
         receive = kwargs["receive"]
         msg = "weibo share testing"
-        raw_para = receive["message"].replace("/shorten","",1)
+        raw_para = receive["message"].replace("/shorten", "", 1)
         para_segs = raw_para.split(" ")
         while "" in para_segs:
             para_segs.remove("")
-        para_segs = list(map(lambda x:x.strip(), para_segs))
+        para_segs = list(map(lambda x: x.strip(), para_segs))
         bot = kwargs["bot"]
         if int(receive["user_id"]) != int(ADMIN_ID):
             msg = "仅管理员能够使用此功能"
@@ -70,10 +73,10 @@ def QQCommand_shorten(*args, **kwargs):
             if time.time() < bot.api_time + bot.long_query_interval:
                 msg = "技能冷却中"
             else:
-                msg = shorten(raw_para, 
-                        WEIBO_TOKEN = WEIBO_TOKEN,
-                        WEIBO_SHORTEN_SAFEURL=WEIBO_SHORTEN_SAFEURL
-                    )
+                msg = shorten(raw_para,
+                              WEIBO_TOKEN=WEIBO_TOKEN,
+                              WEIBO_SHORTEN_SAFEURL=WEIBO_SHORTEN_SAFEURL
+                              )
         msg = msg.strip()
         reply_action = reply_message_action(receive, msg)
         action_list.append(reply_action)

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 import json
 import time
 
+
 # Create your models here.
 
 
@@ -31,27 +32,27 @@ class LiveUser(models.Model):
         jinfo = json.loads(self.info)
         if self.platform == "bilibili":
             res_data = {
-                "url":"https://live.bilibili.com/{}".format(self.room_id),
-                "title":jinfo.get("title", "{}的直播".format(self.name)),
-                "content":"{}开始在{}直播啦~".format(self.name, self.platform),
-                "image":jinfo.get("image", ""),
+                "url": "https://live.bilibili.com/{}".format(self.room_id),
+                "title": jinfo.get("title", "{}的直播".format(self.name)),
+                "content": "{}开始在{}直播啦~".format(self.name, self.platform),
+                "image": jinfo.get("image", ""),
             }
         elif self.platform == "douyu":
             content = "{}开始在{}直播啦~".format(self.name, self.platform)
             res_data = {
-                "url":"https://www.douyu.com/{}".format(self.room_id),
-                "title":jinfo.get("title", "{}的直播".format(self.name)),
-                "content":content,
-                "image":jinfo.get("image", ""),
+                "url": "https://www.douyu.com/{}".format(self.room_id),
+                "title": jinfo.get("title", "{}的直播".format(self.name)),
+                "content": content,
+                "image": jinfo.get("image", ""),
             }
         else:
             res_data = {
-                "url":"https://jq.qq.com/?_wv=1027&k=5L3hY4w",
-                "title":"NotImplementedPlatform",
-                "content":"欢迎加群660557003反映问题",
-                "image":"https://xn--v9x.net/static/dist/img/tata.jpg",
+                "url": "https://jq.qq.com/?_wv=1027&k=5L3hY4w",
+                "title": "NotImplementedPlatform",
+                "content": "欢迎加群660557003反映问题",
+                "image": "https://xn--v9x.net/static/dist/img/tata.jpg",
             }
-        if mode=="text":
+        if mode == "text":
             res_data = "[[CQ:share,url={},title={},content={},image={}]]".format(
                 res_data["url"],
                 res_data["title"],
@@ -62,7 +63,6 @@ class LiveUser(models.Model):
     def is_live(self):
         jinfo = json.loads(self.info)
         return jinfo.get("status", "offline").lower() == "live"
-
 
 
 class QQGroup(models.Model):
@@ -161,9 +161,9 @@ class Boss(models.Model):
     parsed_days = models.IntegerField(default=0)
     frozen = models.BooleanField(default=False)
     patch = models.IntegerField(default=0)
-    savage = models.IntegerField(default=100)   # 100 for normal; 101 for savage
-    global_server = models.IntegerField(default=3) # 3 for boss after 5.0, 1 for boss before 5.0 
-    cn_server = models.IntegerField(default=5) # 5 for boss after 5.0, 3 for boss before 5.0
+    savage = models.IntegerField(default=100)  # 100 for normal; 101 for savage
+    global_server = models.IntegerField(default=3)  # 3 for boss after 5.0, 1 for boss before 5.0
+    cn_server = models.IntegerField(default=5)  # 5 for boss after 5.0, 3 for boss before 5.0
 
     def __str__(self):
         return str(self.name)
@@ -230,7 +230,7 @@ class PlotQuest(models.Model):
     language_names = models.TextField(default="{}", blank=True)
     endpoint = models.BooleanField(default=False)
     endpoint_desc = models.CharField(max_length=64, default="", blank=True)
-    quest_type = models.IntegerField(default=0) # 0:nothing 3:main-scenario 8:special 1,10:other
+    quest_type = models.IntegerField(default=0)  # 0:nothing 3:main-scenario 8:special 1,10:other
 
     def __str__(self):
         return self.name
@@ -329,8 +329,6 @@ class Territory(models.Model):
 
 
 class Image(models.Model):
-    domain = models.CharField(max_length=128, default="https://i.loli.net")
-    url = models.CharField(max_length=128, default="")
     key = models.CharField(max_length=16, default="")
     name = models.CharField(max_length=32, default="")
     path = models.CharField(max_length=64, default="", unique=True)
@@ -447,6 +445,7 @@ class HuntGroup(models.Model):
     moderator = models.ManyToManyField(QQUser, related_name="managed_hunt_group", blank=True)
     servermark = models.CharField(default="", max_length=16, blank=True, null=True)
     remark = models.CharField(default="", max_length=64, blank=True, null=True)
+
     def __str__(self):
         return self.name if self.name else "{}-{}".format(self.group, self.server)
 
@@ -462,6 +461,7 @@ class Monster(models.Model):
     first_pop_cooldown = models.IntegerField(default=0)
     info = models.CharField(default="", max_length=128)
     status = models.TextField(default="{}")
+
     def __str__(self):
         return self.cn_name if self.cn_name else self.name
 
@@ -491,7 +491,6 @@ class IFTTTChannel(models.Model):
         return self.name
 
 
-
 class TreasureMap(models.Model):
     territory = models.ForeignKey(Territory, blank=True, null=True, on_delete=models.CASCADE)
     position = models.TextField(default="[0, 0]")
@@ -503,10 +502,10 @@ class TreasureMap(models.Model):
         return "{}#{}".format(self.territory, self.number)
 
 
-
 class Screen(models.Model):
-    name = models.CharField(default="",max_length=64,blank=True)
+    name = models.CharField(default="", max_length=64, blank=True)
     nickname = models.TextField(default="{}")
-    classname = models.CharField(default="",max_length=64,blank=True)
+    classname = models.CharField(default="", max_length=64, blank=True)
+
     def __str__(self):
-            return str(self.name)
+        return str(self.name)

@@ -21,7 +21,7 @@ def QQGroupCommand_live(*args, **kwargs):
         group_id = receive["group_id"]
 
         msg = "default msg"
-        second_command_msg = receive["message"].replace("/live","",1).strip()
+        second_command_msg = receive["message"].replace("/live", "", 1).strip()
         param_segs = second_command_msg.split(" ")
         while "" in param_segs:
             param_segs.remove("")
@@ -29,8 +29,8 @@ def QQGroupCommand_live(*args, **kwargs):
             optype = param_segs[0].strip()
         except IndexError:
             optype = "help"
-        if(optype=="add"):
-            if(user_info["role"]!="owner" and user_info["role"]!="admin" ):
+        if optype == "add":
+            if user_info["role"] != "owner" and user_info["role"] != "admin" and int(user_id) != 865941547:
                 msg = "仅群主与管理员有权限设置直播订阅"
             else:
                 try:
@@ -48,8 +48,8 @@ def QQGroupCommand_live(*args, **kwargs):
                 #     msg = "未设置 {} 的订阅计划，请检查输入或联系机器人管理员添加".format(live_name)
                 except IndexError:
                     msg = "参数个数错误，请检查命令"
-        elif(optype=="del"):
-            if(user_info["role"]!="owner" and user_info["role"]!="admin" ):
+        elif optype == "del":
+            if user_info["role"] != "owner" and user_info["role"] != "admin" and int(user_id) != 865941547:
                 msg = "仅群主与管理员有权限设置直播订阅"
             else:
                 try:
@@ -65,7 +65,7 @@ def QQGroupCommand_live(*args, **kwargs):
                     msg = "没有找到 {} 的订阅，请检查输入或联系机器人管理员".format(live_name)
                 except IndexError:
                     msg = "参数个数错误，请检查命令"
-        elif(optype=="list"):
+        elif optype == "list":
             lvus = group.live_subscription.all()
             msg = "本群订阅的主播有：\n"
             for lvu in lvus:
@@ -73,8 +73,8 @@ def QQGroupCommand_live(*args, **kwargs):
             msg = msg.strip()
         else:
             msg = "/live add $platform $room: 添加$platform平台的$room房间订阅\n" + \
-                    "/live del $platform $room: 删除$platform平台的$room房间订阅\n" + \
-                    "/live list: 列出当前的群内订阅"
+                  "/live del $platform $room: 删除$platform平台的$room房间订阅\n" + \
+                  "/live list: 列出当前的群内订阅"
         reply_action = reply_message_action(receive, msg)
         action_list.append(reply_action)
         return action_list

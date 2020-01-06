@@ -18,8 +18,8 @@ def QQCommand_hso(*args, **kwargs):
         action_list = []
         receive = kwargs["receive"]
         bot = kwargs["bot"]
-        if time.time() < bot.api_time + bot.long_query_interval:
-            msg = "技能冷却中"
+        if False:
+            pass
         else:
             msg = "好色哦"
             second_command_msg = receive["message"].replace("/hso", "", 1).strip()

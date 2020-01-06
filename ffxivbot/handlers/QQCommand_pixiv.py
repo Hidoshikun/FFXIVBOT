@@ -11,11 +11,13 @@ import logging
 import time
 import traceback
 
+
 def revproxy(url):
     original_domain = "i.pximg.net"
     revproxy_domain = "pixiv.bluefissure.com"
     rev_url = url.replace(original_domain, revproxy_domain)
     return rev_url.replace("_webp", "")
+
 
 def is_nsfw(illust):
     if int(illust["x_restrict"]) != 0:
@@ -132,29 +134,29 @@ def search_gif_ID(ID):
 
 
 def QQCommand_pixiv(*args, **kwargs):
-    action_list = []
     try:
         global_config = kwargs["global_config"]
         bot = kwargs["bot"]
         QQ_BASE_URL = global_config["QQ_BASE_URL"]
         FF14WIKI_API_URL = global_config["FF14WIKI_API_URL"]
         FF14WIKI_BASE_URL = global_config["FF14WIKI_BASE_URL"]
+        action_list = []
         receive = kwargs["receive"]
 
-        if time.time() < bot.api_time + bot.long_query_interval:
-            msg = "技能冷却中"
+        if False:
+            pass
         else:
             message_content = receive["message"].replace("/pixiv", "", 1).strip()
             msg = "default msg"
             if message_content.find("help") == 0 or message_content == "":
                 msg = (
-                    "/pixiv $keyword : 搜索关键词$keyword并随机返回\n"
-                    + "/pixiv $ID : 返回编号为ID的图(NSFW注意)\n"
-                    + "/pixiv gif $ID : 返回编号为ID的动图(耗时超久，请酌情调用)\n"
-                    + "/pixiv $img : 在P站以图搜图(用法参考/anime功能)\n"
-                    + "/pixiv rank $mode : 随机返回一个排行榜的图片(可用mode: day, week, month等)\n"
-                    + "PS: 利用此功能发送NSFW图片的行为请等同于调用命令者发送\n"
-                    + "Powered by https://api.imjad.cn, https://saucenao.com and http://ugoira.dataprocessingclub.org/"
+                        "/pixiv $keyword : 搜索关键词$keyword并随机返回\n"
+                        + "/pixiv $ID : 返回编号为ID的图(NSFW注意)\n"
+                        + "/pixiv gif $ID : 返回编号为ID的动图(耗时超久，请酌情调用)\n"
+                        + "/pixiv $img : 在P站以图搜图(用法参考/anime功能)\n"
+                        + "/pixiv rank $mode : 随机返回一个排行榜的图片(可用mode: day, week, month等)\n"
+                        + "PS: 利用此功能发送NSFW图片的行为请等同于调用命令者发送\n"
+                        + "Powered by https://api.imjad.cn, https://saucenao.com and http://ugoira.dataprocessingclub.org/"
                 )
             elif message_content.find("rank") == 0:
                 mode = message_content.replace("rank", "", 1).strip()
@@ -170,7 +172,7 @@ def QQCommand_pixiv(*args, **kwargs):
             elif "CQ" in message_content and "url=" in message_content:
                 # print("matching image:{}".format(message_content))
                 tmp = message_content
-                tmp = tmp[tmp.find("url=") : -1]
+                tmp = tmp[tmp.find("url="): -1]
                 tmp = tmp.replace("url=", "")
                 img_url = tmp.replace("]", "")
                 msg = search_image(img_url, receive["user_id"])

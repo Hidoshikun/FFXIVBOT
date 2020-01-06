@@ -4,7 +4,6 @@ from ffxivbot.handlers.QQUtils import *
 from ffxivbot.models import *
 
 
-
 def monster_kill(monster_name, hunt_group, server_info, edittime):
     TIMEFORMAT_YMDHMS = "%Y-%m-%d %H:%M:%S"
     time_str = time.strftime(TIMEFORMAT_YMDHMS, time.localtime(edittime))
@@ -22,6 +21,7 @@ def monster_kill(monster_name, hunt_group, server_info, edittime):
     else:
         msg = "找不到狩猎怪\"{}\"".format(monster_name)
     return msg
+
 
 def log_revoke(monster_name, hunt_group, server_info):
     monster = Monster.objects.filter(Q(name=monster_name) | Q(cn_name=monster_name))
@@ -45,7 +45,6 @@ def log_revoke(monster_name, hunt_group, server_info):
     else:
         msg = "找不到狩猎怪\"{}\"".format(monster_name)
     return msg
-
 
 
 # def monster_edit_bak(monster_name, hunt_group, server_info, YMD, HMS):
@@ -77,7 +76,6 @@ def log_revoke(monster_name, hunt_group, server_info):
 #     return msg
 
 
-
 def handle_special_mob(monster, next_spawn_time):
     now_time = time.time()
     trigger_time_info = ""
@@ -88,7 +86,7 @@ def handle_special_mob(monster, next_spawn_time):
             next_trigger_time = (getEorzeaYear(
                 now_time) * 12 * 32 * 24 * 175) + (getEorzeaMonth(
                 now_time) * 32 * 24 * 175) + (15 * 24 * 175) + (17 * 175)
-        elif ntt_eorzea_day >= 17 and ntt_eorzea_day <= 20:
+        elif 17 <= ntt_eorzea_day <= 20:
             next_trigger_time = now_time
         elif ntt_eorzea_day > 20:
             next_trigger_time = (getEorzeaYear(
@@ -98,7 +96,7 @@ def handle_special_mob(monster, next_spawn_time):
             trigger_time_info = "\n（触发时间计算为ET当月第16天17:00）"
             get_trigger_time = next_trigger_time
     elif monster.cn_name.startswith("夺心魔"):
-        if ntt_eorzea_day >= 1 and ntt_eorzea_day <= 4:
+        if 1 <= ntt_eorzea_day <= 4:
             next_trigger_time = now_time
         elif ntt_eorzea_day > 4:
             next_trigger_time = (getEorzeaYear(
@@ -112,7 +110,7 @@ def handle_special_mob(monster, next_spawn_time):
             next_trigger_time = (getEorzeaYear(
                 now_time) * 12 * 32 * 24 * 175) + (getEorzeaMonth(
                 now_time) * 32 * 24 * 175) + (15 * 24 * 175) + (12 * 175)
-        elif ntt_eorzea_day >= 17 and ntt_eorzea_day <= 20:
+        elif 17 <= ntt_eorzea_day <= 20:
             next_trigger_time = now_time
         elif ntt_eorzea_day > 20:
             next_trigger_time = (getEorzeaYear(
@@ -300,12 +298,9 @@ def QQGroupCommand_hunt(*args, **kwargs):
                                     last_kill_time = latest_kill_log.time
                                 except HuntLog.DoesNotExist as e:
                                     last_kill_time = 0
-                                try:
-                                    global_maintain_log = HuntLog.objects.filter(server=server_info,
+                                global_maintain_log = HuntLog.objects.filter(server=server_info,
                                                                              log_type="maintain").latest("id")
-                                    maintain_finish_time = global_maintain_log.time
-                                except HuntLog.DoesNotExist as e:
-                                    maintain_finish_time  = 0
+                                maintain_finish_time = global_maintain_log.time
                                 maintained = (maintain_finish_time > last_kill_time)
                                 kill_time = max(last_kill_time, maintain_finish_time)
                                 spawn_cooldown = (
@@ -349,16 +344,10 @@ def QQGroupCommand_hunt(*args, **kwargs):
                         log.save()
                     msg = "全体服务器的狩猎怪击杀时间已重置"
                 else:
-                    try:
-                        server_name = param_segs[1].strip()
-                    except IndexError:
-                        server_name = str(hunt_group.server)
-                    server_info = Server.objects.filter(name=server_name)
-                    server = server_info[0] if server_info.exists() else hunt_group.server
-                    log = HuntLog(hunt_group=hunt_group, server=server, log_type="maintain",
+                    log = HuntLog(hunt_group=hunt_group, server=hunt_group.server, log_type="maintain",
                                   time=time.time())
                     log.save()
-                    msg = "{} 的狩猎怪击杀时间已重置".format(server)
+                    msg = "{} 的狩猎怪击杀时间已重置".format(hunt_group.server)
             elif ("initialize" in optype):
                 # 其实可以不使用
                 # 暂时不写入配置文件，如有自建，需要修改此处
@@ -416,7 +405,6 @@ def QQGroupCommand_hunt(*args, **kwargs):
                     msg = "*"
         else:
             msg = "该群并非狩猎组群组"
-        msg = msg.strip()
         reply_action = reply_message_action(receive, msg)
         action_list.append(reply_action)
         return action_list

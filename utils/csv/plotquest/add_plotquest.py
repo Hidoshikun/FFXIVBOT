@@ -2,9 +2,11 @@
 import sys
 import os
 import django
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'FFXIV.settings'
 from FFXIV import settings
+
 django.setup()
 from ffxivbot.models import *
 import re
@@ -43,11 +45,11 @@ def import_plotquest_from_csv(csv_file, **kwargs):
         key_list = key_type = []
         add_cnt = 0
         for row_id, row in enumerate(tqdm(reader)):
-            if row_id==0:
+            if row_id == 0:
                 pass
-            elif row_id==1:
+            elif row_id == 1:
                 key_list = list(row)
-            elif row_id==2:
+            elif row_id == 2:
                 key_type = list(row)
             else:
                 quest_id = int(row[key_list.index("#")])
@@ -56,12 +58,12 @@ def import_plotquest_from_csv(csv_file, **kwargs):
                 if not quest_name:
                     continue
                 (quest, created) = PlotQuest.objects.get_or_create(id=quest_id)
-                new_name = quest_name.replace("\ue0be","").replace("\ue0bf","").strip()
+                new_name = quest_name.replace("\ue0be", "").replace("\ue0bf", "").strip()
                 if created or language == "cn":
                     quest.name = new_name
                 quest.quest_type = quest_type
                 lname = json.loads(quest.language_names)
-                lname.update({language:new_name})
+                lname.update({language: new_name})
                 quest.language_names = json.dumps(lname)
                 pre_quests_cnt = int(row[key_list.index("PreviousQuestJoin")])
                 quest.save()
@@ -83,9 +85,10 @@ def import_plotquest_from_csv(csv_file, **kwargs):
                 add_cnt += 1
         print("Imported {} quests".format(add_cnt))
 
+
 if __name__ == "__main__":
     config = get_config()
-    if config.get("download", False):
+    if config.get("download", True):
         if os.path.exists("Quest.csv"):
             os.system("rm Quest.csv")
         os.system(r"wget https://github.com/thewakingsands/ffxiv-datamining-cn/raw/master/Quest.csv")

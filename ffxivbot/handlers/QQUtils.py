@@ -17,7 +17,7 @@ def reply_message_action(receive, msg):
         "params": {},
         "echo": ""
     }
-    if (receive["message_type"] == "group"):
+    if receive["message_type"] == "group":
         action.update({
             "action": "send_group_msg",
             "params": {"group_id": receive["group_id"], "message": msg}

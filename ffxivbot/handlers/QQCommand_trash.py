@@ -10,14 +10,15 @@ import urllib
 import logging
 import traceback
 
+
 def search_trash(name):
     url = "http://gs.choviwu.top/garbage/getGarbage?garbageName={}".format(name)
     r = requests.get(url=url, timeout=5)
     msg = "我也不知道\"{}\"是什么垃圾，再问拉黑了".format(name)
-    if r.status_code==200:
+    if r.status_code == 200:
         try:
             r_json = r.json()
-            if r_json.get("code", -1)==200:
+            if r_json.get("code", -1) == 200:
                 jdata = r_json.get("data", [])[0]
                 gName = jdata.get("gName", "")
                 gType = jdata.get("gType", "")
@@ -27,7 +28,6 @@ def search_trash(name):
         except IndexError as e:
             print("IndexError: {}".format(type(e)))
     return msg.strip()
-
 
 
 def QQCommand_trash(*args, **kwargs):

@@ -89,7 +89,7 @@ def webapi(req):
                             "rcode": "1002",
                         }
                 else:
-                    times = getFollowingWeathers(territory, length, TIMEFORMAT_MDHMS, unixSeconds = time.time())
+                    times = getFollowingWeathers(territory, length, TIMEFORMAT_MDHMS, unixSeconds=time.time())
                     res_dict = {
                         "response": "success",
                         "msg": "",
@@ -280,7 +280,8 @@ def github_webhook(req):
             msg = "{} opened a new pull request to {}:\n".format(pusher, repo.get("full_name"))
             msg += "#{}:{}\n".format(number, pr.get("title"))
         else:
-            msg += "{} {} PR#{}:{}, state changed to {}.\n".format(pusher, action, number, pr.get("title"), pr.get("state"))
+            msg += "{} {} PR#{}:{}, state changed to {}.\n".format(pusher, action, number, pr.get("title"),
+                                                                   pr.get("state"))
         msg += "Check at {}\n".format(pr.get("url"))
     elif event_type == "star":
         action = req_json.get("action")
@@ -300,12 +301,14 @@ def github_webhook(req):
             msg = "{} opened a new issue to {}:\n".format(pusher, repo.get("full_name"))
             msg += "#{}:{}\n".format(number, issue.get("title"))
         else:
-            msg += "{} {} issue#{}:{}, state changed to {}.\n".format(pusher, action, number, issue.get("title"), issue.get("state"))
+            msg += "{} {} issue#{}:{}, state changed to {}.\n".format(pusher, action, number, issue.get("title"),
+                                                                      issue.get("state"))
         msg += "Check at {}\n".format(issue.get("url"))
     elif event_type == "fork":
         forkee = req_json.get("forkee")
         repo = req_json.get("repository")
-        msg = "{} forked {} to {}".format(forkee.get("owner").get("login"), repo.get("full_name"), forkee.get("full_name"))
+        msg = "{} forked {} to {}".format(forkee.get("owner").get("login"), repo.get("full_name"),
+                                          forkee.get("full_name"))
     elif event_type == "gollum":
         pages = req_json.get("pages")
         sender = req_json.get("sender")

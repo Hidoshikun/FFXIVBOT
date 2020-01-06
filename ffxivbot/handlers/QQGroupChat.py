@@ -8,104 +8,117 @@ import requests
 import hashlib
 from bs4 import BeautifulSoup
 import traceback
-import re
+
+import time
+import hashlib
+import random
+import string
+import requests
+from urllib.parse import quote
 
 
 def QQGroupChat(*args, **kwargs):
     try:
-        global_config = kwargs.get("global_config", None)
         group = kwargs.get("group", None)
         user_info = kwargs.get("user_info", None)
-        QQ_BASE_URL = global_config.get("QQ_BASE_URL", None)
-        TULING_API_URL = global_config.get("TULING_API_URL", None)
-        TULING_API_KEY = global_config.get("TULING_API_KEY", None)
-        BOT_FATHER = global_config.get("BOT_FATHER", None)
-        BOT_MOTHER = global_config.get("BOT_MOTHER", None)
-        USER_NICKNAME = global_config.get("USER_NICKNAME", "小暗呆")
         action_list = []
         receive = kwargs["receive"]
         bot = kwargs["bot"]
         user_id = receive["user_id"]
         group_id = receive["group_id"]
-        group_commands = json.loads(group.commands)
 
-        #custom replys
-        reply_enable = group_commands.get("/reply", "enable") != "disable"
-        if reply_enable:
-            try:
-                match_replys = CustomReply.objects.filter(group=group,key=receive["message"].strip().split(" ")[0])
-                if(match_replys.exists()):
-                    item = random.choice(match_replys)
-                    action_list.append(reply_message_action(receive, item.value))
-                    return action_list
-            except Exception as e:
-                print("received message:{}".format(receive["message"]))
-                traceback.print_exc()
-        
-        #repeat_ban & repeat
+        try:
+            match_replys = CustomReply.objects.filter(group=group, key=receive["message"].strip().split(" ")[0])
+            if match_replys.exists():
+                item = random.choice(match_replys)
+                action_list.append(reply_message_action(receive, item.value))
+                return action_list
+        except Exception as e:
+            print("received message:{}".format(receive["message"]))
+            traceback.print_exc()
+
+        # repeat_ban & repeat
         message = receive["message"].strip()
-        message_hash = hashlib.md5((message+"|{}".format(bot.user_id)).encode()).hexdigest()
-        chats = ChatMessage.objects.filter(group=group, message_hash=message_hash).filter(timestamp__gt=int(time.time())-60)
-        if(chats.exists()):
+        message_hash = hashlib.md5((message + "|{}".format(bot.user_id)).encode()).hexdigest()
+        chats = ChatMessage.objects.filter(group=group, message_hash=message_hash).filter(
+            timestamp__gt=int(time.time()) - 60)
+        if chats.exists():
             chat = chats[0]
             chat.message = message
             chat.timestamp = int(time.time())
             chat.times = chat.times + 1
             chat.save(update_fields=["timestamp", "times", "message"])
-            if(group.repeat_ban>0 and chat.times>=group.repeat_ban):
-                msg = "抓到你了，复读姬！╭(╯^╰)╮口球一分钟！"
-                if(user_info["role"]=="owner"):
-                    msg = "虽然你是狗群主%s无法禁言，但是也触发了复读机检测系统，请闭嘴一分钟[CQ:face,id=14]"%(bot.name)
-                if(user_info["role"]=="admin"):
-                    msg = "虽然你是狗管理%s无法禁言，但是也触发了复读机检测系统，请闭嘴一分钟[CQ:face,id=14]"%(bot.name)
-                msg = "[CQ:at,qq=%s] "%(user_id) + msg
-                action_list.append(delete_message_action(receive["message_id"]))
-                action_list.append(group_ban_action(group_id, user_id, 60))
-                action_list.append(reply_message_action(receive, msg))
-            if((not message.startswith("/")) and group.repeat_length>=1 and group.repeat_prob>0 and chat.times>=group.repeat_length and (not chat.repeated)):
-                if(random.randint(1, 100) <= group.repeat_prob):
-                    # logging.error("repeat reply with bot:{} message:{}".format(bot.user_id, chat.message))
+            if (not message.startswith("/")) \
+                    and group.repeat_length >= 1 \
+                    and group.repeat_prob > 0 \
+                    and chat.times >= group.repeat_length \
+                    and (not chat.repeated):
+                if random.randint(1, 100) <= group.repeat_prob:
                     action_list.append(reply_message_action(receive, chat.message))
                     chat.repeated = True
                     chat.save(update_fields=["repeated"])
         else:
-            if(group.repeat_ban>0 or (group.repeat_length>=1 and group.repeat_prob>0) ):
-                if(receive["self_id"]!=receive["user_id"]):
-                    # print("creating new chat message:{}".format(message))
-                    chat = ChatMessage(group=group,timestamp=time.time(),message_hash=message_hash)
+            if group.repeat_ban > 0 or (group.repeat_length >= 1 and group.repeat_prob > 0):
+                if receive["self_id"] != receive["user_id"]:
+                    chat = ChatMessage(group=group, timestamp=time.time(), message_hash=message_hash)
                     chat.save()
 
-        #tuling chatbot
-        chat_enable = group_commands.get("/chat", "enable") != "disable"
-        if("[CQ:at,qq=%s]"%(receive["self_id"]) in receive["message"] and chat_enable):
-            # logging.debug("Tuling reply")
-            receive_msg = message
-            receive_msg = receive_msg.replace("[CQ:at,qq=%s]"%(receive["self_id"]),"")
-            tuling_data = {}
-            tuling_data["reqType"] = 0 
-            tuling_data["perception"] = {"inputText": {"text": receive_msg}}
-            tuling_data["userInfo"] = {"apiKey": TULING_API_KEY if bot.tuling_token=="" else bot.tuling_token,
-                                         "userId": receive["user_id"], 
-                                         "groupId": group.group_id
-                                         }
-            r = requests.post(url=TULING_API_URL,data=json.dumps(tuling_data),timeout=3)
-            tuling_reply = r.json()
-            # logging.debug("tuling reply:%s"%(r.text))
-            msg = ""
-            for item in tuling_reply["results"]:
-                if(item["resultType"]=="text"):
-                    msg += item["values"]["text"]
-            if bot.tuling_token=="":
-                msg = msg.replace("图灵工程师爸爸", BOT_FATHER)
-                msg = msg.replace("图灵工程师妈妈", BOT_MOTHER)
-                msg = msg.replace("小主人", USER_NICKNAME)
-            msg = re.sub(r"(?:http|https):\/\/((?:[\w-]+)(?:\.[\w-]+)+)(?:[\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?", "http://ff.sdo.com", msg)
-            msg = "[CQ:at,qq=%s] "%(receive["user_id"])+msg
+        if "[CQ:at,qq=%s]" % (receive["self_id"]) in receive["message"]:
+            question = receive["message"].replace("[CQ:at,qq=1738759322] ", "")
+            msg = "[CQ:at,qq=%s] " % (receive["user_id"]) + get_content(question)
+
             action = reply_message_action(receive, msg)
             action_list.append(action)
+
         return action_list
     except Exception as e:
         msg = "Error: {}".format(type(e))
         traceback.print_exc()
         logging.error(e)
     return []
+
+
+def curlmd5(src):
+    m = hashlib.md5(src.encode('UTF-8'))
+    # 将得到的MD5值所有字符转换成大写
+    return m.hexdigest().upper()
+
+
+def get_params(plus_item):
+    # 请求时间戳（秒级），用于防止请求重放（保证签名5分钟有效）  
+    t = time.time()
+    time_stamp = str(int(t))
+    # 请求随机字符串，用于保证签名不可预测  
+    nonce_str = ''.join(random.sample(string.ascii_letters + string.digits, 10))
+    # 应用标志，这里修改成自己的id和key
+    app_id = '2125139771'
+    app_key = 'wtFLIF1ilpZnBk21'
+    params = {'app_id': app_id,
+              'question': plus_item,
+              'time_stamp': time_stamp,
+              'nonce_str': nonce_str,
+              'session': '10000'
+              }
+    sign_before = ''
+    # 要对key排序再拼接  
+    for key in sorted(params):
+        # 键值拼接过程value部分需要URL编码，URL编码算法用大写字母，例如%E8。quote默认大写。  
+        sign_before += '{}={}&'.format(key, quote(params[key], safe=''))
+        # 将应用密钥以app_key为键名，拼接到字符串sign_before末尾  
+
+    sign_before += 'app_key={}'.format(app_key)
+    # 对字符串sign_before进行MD5运算，得到接口请求签名  
+    sign = curlmd5(sign_before)
+    params['sign'] = sign
+    return params
+
+
+def get_content(plus_item):
+    # 聊天的API地址
+    url = "https://api.ai.qq.com/fcgi-bin/nlp/nlp_textchat"
+    # 获取请求参数  
+    plus_item = plus_item.encode('utf-8')
+    payload = get_params(plus_item)
+    # r = requests.get(url, params=payload)
+    r = requests.post(url, data=payload)
+    return r.json()["data"]["answer"]

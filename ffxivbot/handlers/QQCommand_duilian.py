@@ -69,13 +69,12 @@ def QQCommand_duilian(*args, **kwargs):
             msg = "default msg"
             if message_content.find("help") == 0 or message_content == "":
                 msg = (
-                    "/duilian $shanglian : 生成$shanglian的下联\n"
-                    + "Powered by https://duilian.msra.cn"
+                        "/duilian $shanglian : 生成$shanglian的下联\n"
+                        + "Powered by https://duilian.msra.cn"
                 )
             else:
                 shanglian = message_content
                 xialian = get_xialian(shanglian)
-                hengpi = ""
                 if shanglian and xialian:
                     hengpi = get_hengpi(shanglian, xialian)
                 msg = "{}\n{}\n{}".format(shanglian, xialian, hengpi)
