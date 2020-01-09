@@ -509,3 +509,12 @@ class Screen(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+
+class LuckData(models.Model):
+    number = models.IntegerField(default=0)
+    text = models.TextField(default="")
+    pic_base64 = models.TextField(default="")
+
+    def __str__(self):
+        return str(self.number)

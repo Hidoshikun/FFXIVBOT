@@ -28,6 +28,35 @@ def QQCommand_luck(*args, **kwargs):
         logging.error(e)
 
 
+# def QQCommand_luck(*args, **kwargs):
+#     try:
+#         action_list = []
+#         receive = kwargs["receive"]
+#         user_id = receive["user_id"]
+#         random_num = get_page_num(user_id)
+#         luck_data = LuckData.objects.filter(number=random_num)
+#         if luck_data.exists():
+#             luck_data = luck_data[0]
+#             if "text" in receive["message"]:
+#                 text = luck_data.text
+#                 msg = "[CQ:at,qq=%s]" % user_id + "\n" + text
+#             else:
+#                 base64_str = luck_data.pic_base64
+#                 print(base64_str)
+#                 msg = "[CQ:at,qq=%s]" % user_id + "[CQ:image,file=base64://{}]\n".format(base64_str)
+#                 msg = msg.strip()
+#         else:
+#             msg = "好像出了点问题，再抽一次吧~"
+#
+#         reply_action = reply_message_action(receive, msg)
+#         action_list.append(reply_action)
+#         return action_list
+#     except Exception as e:
+#         msg = "Error: {}".format(type(e))
+#         action_list.append(reply_message_action(receive, msg))
+#         logging.error(e)
+
+
 def get_page_num(QQnum):
     today = datetime.date.today()
     formatted_today = int(today.strftime('%y%m%d'))
